@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "517862843559",
+    "firebase_url": "https://masksearch-9eb62.firebaseio.com",
+    "project_id": "masksearch-9eb62",
+    "storage_bucket": "masksearch-9eb62.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:517862843559:android:ee0449bb0882ab28a56782",
+        "android_client_info": {
+          "package_name": "com.eosr14.masksearch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "517862843559-ik308j8dsaglhoaa5u75bp8hh80miq5f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa3kxFBxCXyIc4JYbdoEe6GGtpqqKp1b0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "517862843559-ik308j8dsaglhoaa5u75bp8hh80miq5f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
