@@ -22,10 +22,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("keystore/masksearch.jks")
-            storePassword "masksearch"
+            storeFile file("keystore/mask.jks")
+            storePassword "maskmask"
             keyAlias "eosr14"
-            keyPassword "masksearch"
+            keyPassword "maskmask"
         }
     }
     buildTypes {
