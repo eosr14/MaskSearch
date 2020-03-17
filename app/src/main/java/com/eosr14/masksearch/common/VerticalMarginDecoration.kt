@@ -16,7 +16,7 @@ class VerticalMarginDecoration(private val context: Context) : RecyclerView.Item
         super.getItemOffsets(outRect, view, parent, state)
         outRect.bottom = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
-            10.toFloat(),
+            3.toFloat(),
             context.resources.displayMetrics
         ).toInt()
     }

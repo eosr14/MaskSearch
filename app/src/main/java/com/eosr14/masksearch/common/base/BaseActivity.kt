@@ -26,6 +26,11 @@ open class BaseActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    override fun onStop() {
+        super.onStop()
+        compositeDisposable.clear()
+    }
+
     fun addDisposable(disposable: Disposable) {
         compositeDisposable.add(disposable)
     }

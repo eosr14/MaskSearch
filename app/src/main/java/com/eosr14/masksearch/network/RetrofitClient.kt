@@ -27,7 +27,7 @@ class RetrofitClient {
             .build()
     }
 
-    fun provideOkHttpClient(): OkHttpClient {
+    private fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(provideHttpLoggingInterceptor())
             .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)

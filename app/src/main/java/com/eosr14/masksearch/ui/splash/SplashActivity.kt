@@ -8,10 +8,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.eosr14.masksearch.R
+import com.eosr14.masksearch.common.PERMISSION_LOCATION_REQUEST_CODE
+import com.eosr14.masksearch.common.SPLASH_INTERVAL
 import com.eosr14.masksearch.common.base.BaseActivity
 import com.eosr14.masksearch.ui.main.MainActivity
 import io.reactivex.Observable
@@ -37,48 +40,17 @@ class SplashActivity : BaseActivity() {
             this@SplashActivity,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            // 권한 없음
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                PERMISSION_LOCATION_REQUEST_CODE
+            )
+        } else {
             // 권한 있음
             showMain()
-        } else {
-            // 권한 없음
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this@SplashActivity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                // 다시보지않기 체크 X
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    PERMISSION_LOCATION_REQUEST_CODE
-                )
-            } else {
-                // 다시보지않기 체크
-                showPermissionDenied()
-            }
         }
-    }
-
-    private fun showPermissionDenied() {
-        AlertDialog.Builder(this@SplashActivity)
-            .setTitle("안내")
-            .setMessage("퍼미션 거부 안내")
-            .setPositiveButton(
-                "앱 설정 > 권한"
-            ) { _, _ ->
-                val intent = Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:" + "com.eosr14.masksearch")
-                )
-                intent.addCategory(Intent.CATEGORY_DEFAULT)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-                finish()
-            }
-            .setNegativeButton(
-                "취소"
-            ) { dialogInterface, _ -> dialogInterface.dismiss() }
-            .show()
     }
 
     private fun showMain() {
@@ -98,17 +70,31 @@ class SplashActivity : BaseActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE
-            && Manifest.permission.ACCESS_FINE_LOCATION == permissions[0]
-            && PackageManager.PERMISSION_GRANTED == grantResults[0]
-        ) {
-            showMain()
+        when (requestCode) {
+            PERMISSION_LOCATION_REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT).show()
+                    showMain()
+                } else {
+                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT).show()
+                    showAppSetting()
+                }
+            }
+            else -> {
+                // nothing
+            }
         }
     }
 
-    companion object {
-        private const val SPLASH_INTERVAL = 2000L
-        private const val PERMISSION_LOCATION_REQUEST_CODE = 1000
+    private fun showAppSetting() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:" + "com.eosr14.masksearch")
+        )
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish()
     }
 
 }

@@ -70,10 +70,19 @@ dependencies {
 
     // Design
     implementation 'com.google.android.material:material:1.2.0-alpha05'
+    
+    // explicitly depend on RxJava's latest version for bug fixes and new features.
+    implementation 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
+    implementation 'com.jakewharton.rxbinding2:rxbinding-recyclerview-v7:2.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    // RxJava
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
+    implementation 'com.jakewharton.rxbinding3:rxbinding:3.0.0'
+    implementation 'com.jakewharton.rxbinding3:rxbinding-core:3.0.0'
+
+    // RxLifeCycle
+    implementation 'com.trello.rxlifecycle3:rxlifecycle:3.0.0'
+    implementation 'com.trello.rxlifecycle3:rxlifecycle-android:3.0.0'
 
     // Presco
     implementation 'com.facebook.fresco:fresco:1.13.0'

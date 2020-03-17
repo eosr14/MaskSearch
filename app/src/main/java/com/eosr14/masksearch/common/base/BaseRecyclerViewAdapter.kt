@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 abstract class BaseRecyclerViewAdapter<T, H : RecyclerView.ViewHolder> :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    private var onItemClickListener: OnItemClickListener? = null
+    protected var onItemClickListener: OnItemClickListener? = null
     private var listItems: MutableList<T> = mutableListOf()
     private var clickViewId: Int = View.NO_ID
 

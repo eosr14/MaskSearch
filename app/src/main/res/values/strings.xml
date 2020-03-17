@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">마스크 위치알리미</string>
+    <string name="error_network_message">데이터를 불러오지 못했습니다.\n잠시 후 다시 시도해주세요.</string>
+
+    <string name="permission_granted">위치 권한 승인이 완료되었습니다.</string>
+    <string name="permission_define">위치 권한이 승인되지 않았습니다.\n수동으로 권한 체크해주세요.</string>
 </resources>

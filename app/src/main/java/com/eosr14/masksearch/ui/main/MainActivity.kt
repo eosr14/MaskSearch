@@ -12,25 +12,39 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.eosr14.masksearch.R
-import com.eosr14.masksearch.common.KAKAO_NATIVE_APP_KEY
+import com.eosr14.masksearch.common.*
+import com.eosr14.masksearch.common.base.BaseActivity
+import com.eosr14.masksearch.common.base.BaseRecyclerViewAdapter
 import com.eosr14.masksearch.databinding.ActivityMainBinding
+import com.eosr14.masksearch.model.MaskStoreModel
+import com.eosr14.masksearch.ui.splash.SplashActivity
+import com.jakewharton.rxbinding3.widget.textChanges
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
+import java.util.concurrent.TimeUnit
 
-class MainActivity : AppCompatActivity(), MainViewModelInterface,
+class MainActivity : BaseActivity(), MainViewModelInterface,
     MapView.MapViewEventListener,
     MapReverseGeoCoder.ReverseGeoCodingResultListener {
 
     private lateinit var mainViewModel: MainVIewModel
+
+    private val onSoftKeyBoardShowListener: (Boolean) -> Unit = { isShowKeyBoard ->
+        et_auto_complete?.let { it.showKeyboardAndFocus(isShowKeyBoard) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,14 +65,65 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        map_main.currentLocationTrackingMode = MapView.CurrentLocationTrackingMode.TrackingModeOff
-        map_main.setShowCurrentLocationMarker(false)
+    override fun onResume() {
+        super.onResume()
+        uiEventObserve()
     }
 
     private fun bindView() {
         map_main.setMapViewEventListener(this)
+        map_main.setCalloutBalloonAdapter(CustomMarkerBalloonAdapter(this@MainActivity))
+
+        rv_auto_complete.run {
+            addItemDecoration(VerticalMarginDecoration(this@MainActivity))
+            layoutManager =
+                LinearLayoutManager(context).apply { orientation = RecyclerView.VERTICAL }
+            adapter = AutoCompleteAdapter(object : BaseRecyclerViewAdapter.OnItemClickListener {
+                override fun onItemClick(
+                    view: View,
+                    position: Int,
+                    adapter: BaseRecyclerViewAdapter<*, *>
+                ) {
+                    (adapter as AutoCompleteAdapter).getItem(position).let {
+                        if (it.x != null && it.y != null) {
+                            val latitude = it.y.toDouble()
+                            val longitude = it.x.toDouble()
+                            mainViewModel.clearToRequestMaskStore(
+                                latitude,
+                                longitude,
+                                REQUEST_METER
+                            )
+                            movePoint(it.placeName, latitude, longitude)
+                        }
+                    }
+                }
+            })
+        }
+    }
+
+    private fun movePoint(text: String, latitude: Double, longitude: Double) {
+        mainViewModel.clearAutoCompleteList()
+        onSoftKeyBoardShowListener(false)
+        map_main?.setMapCenterPointAndZoomLevel(
+            MapPoint.mapPointWithGeoCoord(latitude, longitude),
+            2,
+            true
+        )
+    }
+
+    private fun uiEventObserve() {
+        addDisposable(
+            et_auto_complete.textChanges()
+                .debounce(300, TimeUnit.MILLISECONDS)
+                .map { it.toString() }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { term ->
+                    when {
+                        term.isNotEmpty() -> mainViewModel.requestKaKaoKeyWord(term)
+                        else -> mainViewModel.clearAutoCompleteList()
+                    }
+                }
+        )
     }
 
     @SuppressLint("MissingPermission")
@@ -66,17 +131,67 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
         (getSystemService(Context.LOCATION_SERVICE) as LocationManager).apply {
             getLastKnownLocation(this)?.let {
                 map_main.apply {
-                    this.currentLocationTrackingMode =
-                        MapView.CurrentLocationTrackingMode.TrackingModeOff
                     val currentMapPoint = MapPoint.mapPointWithGeoCoord(it.latitude, it.longitude)
+                    val currentMarker = MapPOIItem().apply {
+                        itemName = "현재 위치"
+                        tag = 0
+                        mapPoint = currentMapPoint
+                        markerType = MapPOIItem.MarkerType.CustomImage
+                        customImageResourceId = R.drawable.location
+                        isCustomImageAutoscale = false
+                        setCustomImageAnchor(0.5f, 1.0f)
+                        userObject = MaskStoreModel.Stores(
+                            name = "현재 위치",
+                            addr = "",
+                            code = tag.toString(),
+                            createdAt = "",
+                            lat = 0.0,
+                            lng = 0.0,
+                            remainStat = "",
+                            type = "",
+                            stockAt = ""
+                        )
+                    }
+
                     this.setMapCenterPointAndZoomLevel(
                         currentMapPoint,
-                        1,
+                        2,
                         true
                     )
-                    this.setShowCurrentLocationMarker(true)
-                    mainViewModel.requestMaskStore(it.latitude, it.longitude, 800)
+                    this.addPOIItem(currentMarker)
+                    this.selectPOIItem(currentMarker, true)
+
+                    mainViewModel.requestMaskStore(it.latitude, it.longitude, REQUEST_METER)
                 }
+            }
+        }
+    }
+
+    private fun setDefaultMarker() {
+        (getSystemService(Context.LOCATION_SERVICE) as LocationManager).apply {
+            getLastKnownLocation(this)?.let {
+                val currentMapPoint = MapPoint.mapPointWithGeoCoord(it.latitude, it.longitude)
+                val currentMarker = MapPOIItem().apply {
+                    itemName = "현재 위치"
+                    tag = 0
+                    mapPoint = currentMapPoint
+                    markerType = MapPOIItem.MarkerType.CustomImage
+                    customImageResourceId = R.drawable.location
+                    isCustomImageAutoscale = false
+                    setCustomImageAnchor(0.5f, 1.0f)
+                    userObject = MaskStoreModel.Stores(
+                        name = "현재 위치",
+                        addr = "",
+                        code = tag.toString(),
+                        createdAt = "",
+                        lat = 0.0,
+                        lng = 0.0,
+                        remainStat = "",
+                        type = "",
+                        stockAt = ""
+                    )
+                }
+                map_main?.addPOIItem(currentMarker)
             }
         }
     }
@@ -88,7 +203,6 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
         for (provider in providers) {
             val l: Location = locationManager.getLastKnownLocation(provider) ?: continue
             if (bestLocation == null || l.accuracy < bestLocation.accuracy) {
-                // Found best last known location: %s", l);
                 bestLocation = l
             }
         }
@@ -105,9 +219,16 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
     }
 
     // MainViewModelInterface [--
-    override fun onClickMyLocation() {
-        initLocation()
+    override fun onClickMyLocation() = initLocation()
+
+    override fun showNetworkErrorToast() =
+        Toast.makeText(this, R.string.error_network_message, Toast.LENGTH_SHORT).show()
+
+    override fun clearMarker() {
+        map_main?.removeAllPOIItems()
+        setDefaultMarker()
     }
+
     // ]-- MainViewModelInterface
 
     // MapView.MapViewEventListener [--
@@ -118,6 +239,8 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
 
     override fun onMapViewMoveFinished(mapView: MapView?, point: MapPoint?) {
         point?.mapPointGeoCoord?.let {
+            mainViewModel.setMoveLatitude(it.latitude)
+            mainViewModel.setMoveLongitude(it.longitude)
         }
     }
 
@@ -146,8 +269,7 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
     }
 
     private fun getGeoAddress(result: String?) {
-        val message = if (result.isNullOrEmpty()) "주소를 불러오는데 실패하였습니다." else result
-        Toast.makeText(this@MainActivity, "가져온 주소 = $message", Toast.LENGTH_SHORT).show()
+        mainViewModel.setCurrentAddress(result)
     }
     // ]-- MapReverseGeoCoder.ReverseGeoCodingResultListener
 
@@ -157,48 +279,17 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
             this@MainActivity,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            // 권한 없음
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                PERMISSION_LOCATION_REQUEST_CODE
+            )
+        } else {
             // 권한 있음
             bindView()
-        } else {
-            // 권한 없음
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this@MainActivity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                // 다시보지않기 체크 X
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    PERMISSION_LOCATION_REQUEST_CODE
-                )
-            } else {
-                // 다시보지않기 체크
-                showPermissionDenied()
-            }
         }
-    }
-
-    private fun showPermissionDenied() {
-        AlertDialog.Builder(this@MainActivity)
-            .setTitle("안내")
-            .setMessage("퍼미션 거부 안내")
-            .setPositiveButton(
-                "앱 설정 > 권한"
-            ) { _, _ ->
-                val intent = Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:" + "com.eosr14.masksearch")
-                )
-                intent.addCategory(Intent.CATEGORY_DEFAULT)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-                finish()
-            }
-            .setNegativeButton(
-                "취소"
-            ) { dialogInterface, _ -> dialogInterface.dismiss() }
-            .show()
     }
 
     override fun onRequestPermissionsResult(
@@ -206,18 +297,34 @@ class MainActivity : AppCompatActivity(), MainViewModelInterface,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE
-            && Manifest.permission.ACCESS_FINE_LOCATION == permissions[0]
-            && PackageManager.PERMISSION_GRANTED == grantResults[0]
-        ) {
-            bindView()
+        when (requestCode) {
+            PERMISSION_LOCATION_REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT).show()
+                    bindView()
+                } else {
+                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT).show()
+                    showAppSetting()
+                }
+            }
+            else -> {
+                // nothing
+            }
         }
     }
 
+    private fun showAppSetting() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:" + "com.eosr14.masksearch")
+        )
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish()
+    }
 
     companion object {
-        private const val PERMISSION_LOCATION_REQUEST_CODE = 1000
-
         fun startActivity(context: Context) {
             context.startActivity(Intent(context, MainActivity::class.java))
         }
