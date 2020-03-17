@@ -27,8 +27,8 @@ object DataBindingComponents {
         data.forEach {
             mapView.addPOIItem(MapPOIItem().apply {
                 itemName = it.name
-                tag = it.code!!.toInt()
-                mapPoint = MapPoint.mapPointWithGeoCoord(it.lat!!, it.lng!!)
+                tag = it.code?.toIntOrNull() ?: 0
+                mapPoint = MapPoint.mapPointWithGeoCoord(it.lat ?: 0.0, it.lng ?: 0.0)
                 markerType = MapPOIItem.MarkerType.CustomImage
                 customImageResourceId = R.drawable.pharmacy
                 isCustomImageAutoscale = false

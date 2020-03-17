@@ -30,12 +30,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- 테스트 키 : "ca-app-pub-3940256099942544/6300978111"-->
+    <!-- 릴리즈 키 : "ca-app-pub-9082375524666733/5508762533"-->
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
         android:layout_width="0dp"
         android:layout_height="50dp"
         app:adSize="BANNER"
-        app:adUnitId="ca-app-pub-9082375524666733/5508762533"
+        app:adUnitId="ca-app-pub-3940256099942544/6300978111"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

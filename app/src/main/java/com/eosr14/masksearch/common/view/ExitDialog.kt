@@ -31,8 +31,12 @@ class ExitDialog(
         setBindView()
     }
 
+    private fun setAdView() {
+        adView?.loadAd(AdRequest.Builder().build())
+    }
+
     private fun setBindView() {
-        adView.loadAd(AdRequest.Builder().build())
+        setAdView()
         tv_exit_dialog_cancel.setOnClickListener(this)
         tv_exit_dialog_continue.setOnClickListener(this)
     }

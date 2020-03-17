@@ -14,8 +14,10 @@ import com.eosr14.masksearch.R
 import com.eosr14.masksearch.common.PERMISSION_LOCATION_REQUEST_CODE
 import com.eosr14.masksearch.common.SPLASH_INTERVAL
 import com.eosr14.masksearch.common.base.BaseActivity
+
 import com.eosr14.masksearch.ui.main.MainActivity
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_splash.*
@@ -37,7 +39,7 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun setAdView() {
-        adView.loadAd(AdRequest.Builder().build())
+        adView?.loadAd(AdRequest.Builder().build())
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
