@@ -1,4 +1,4 @@
-package com.eosr14.masksearch.common
+package com.eosr14.masksearch.common.extension
 
 import android.content.Context
 import android.view.inputmethod.InputMethodManager

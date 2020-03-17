@@ -1,7 +1,6 @@
 package com.eosr14.masksearch.ui.splash
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -10,15 +9,16 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.eosr14.masksearch.R
 import com.eosr14.masksearch.common.PERMISSION_LOCATION_REQUEST_CODE
 import com.eosr14.masksearch.common.SPLASH_INTERVAL
 import com.eosr14.masksearch.common.base.BaseActivity
 import com.eosr14.masksearch.ui.main.MainActivity
+import com.google.android.gms.ads.AdRequest
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlinx.android.synthetic.main.activity_splash.*
 import java.util.concurrent.TimeUnit
 
 class SplashActivity : BaseActivity() {
@@ -27,11 +27,17 @@ class SplashActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
+        setAdView()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission()
         } else {
             showMain()
         }
+    }
+
+    private fun setAdView() {
+        adView.loadAd(AdRequest.Builder().build())
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -73,10 +79,12 @@ class SplashActivity : BaseActivity() {
         when (requestCode) {
             PERMISSION_LOCATION_REQUEST_CODE -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT)
+                        .show()
                     showMain()
                 } else {
-                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT)
+                        .show()
                     showAppSetting()
                 }
             }

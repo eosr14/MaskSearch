@@ -1,4 +1,4 @@
-package com.eosr14.masksearch.common
+package com.eosr14.masksearch.common.view
 
 import android.app.Dialog
 import android.content.Context

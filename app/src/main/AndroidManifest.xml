@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".MaskSearchApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -32,6 +33,10 @@
         <meta-data
             android:name="com.kakao.sdk.AppKey"
             android:value="b6f3390804a4d00a98aa6c060d3823f5" />
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9082375524666733~8134925871" />
 
     </application>
 

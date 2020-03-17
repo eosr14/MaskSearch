@@ -3,8 +3,8 @@ package com.eosr14.masksearch.ui.main
 import android.app.Activity
 import android.view.View
 import com.eosr14.masksearch.R
-import com.eosr14.masksearch.common.convertDisplayDate
-import com.eosr14.masksearch.common.convertMaskCount
+import com.eosr14.masksearch.common.extension.convertDisplayDate
+import com.eosr14.masksearch.common.extension.convertMaskCount
 import com.eosr14.masksearch.model.MaskStoreModel
 import kotlinx.android.synthetic.main.custom_callout_balloon.view.*
 import net.daum.mf.map.api.CalloutBalloonAdapter

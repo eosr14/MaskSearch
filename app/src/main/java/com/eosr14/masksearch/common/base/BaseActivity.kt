@@ -2,10 +2,8 @@ package com.eosr14.masksearch.common.base
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.eosr14.masksearch.R
-import com.eosr14.masksearch.common.ProgressDialog
+import com.eosr14.masksearch.common.view.ProgressDialog
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 

@@ -2,7 +2,6 @@ package com.eosr14.masksearch.ui.main
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,7 +14,6 @@ import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,9 +22,11 @@ import com.eosr14.masksearch.R
 import com.eosr14.masksearch.common.*
 import com.eosr14.masksearch.common.base.BaseActivity
 import com.eosr14.masksearch.common.base.BaseRecyclerViewAdapter
+import com.eosr14.masksearch.common.extension.showKeyboardAndFocus
+import com.eosr14.masksearch.common.view.ExitDialog
+import com.eosr14.masksearch.common.view.VerticalMarginDecoration
 import com.eosr14.masksearch.databinding.ActivityMainBinding
 import com.eosr14.masksearch.model.MaskStoreModel
-import com.eosr14.masksearch.ui.splash.SplashActivity
 import com.jakewharton.rxbinding3.widget.textChanges
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -70,12 +70,26 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         uiEventObserve()
     }
 
+    override fun onBackPressed() {
+        if (!this@MainActivity.isFinishing) {
+            ExitDialog(
+                this@MainActivity,
+                Runnable { finish() },
+                Runnable { }
+            ).show()
+        }
+    }
+
     private fun bindView() {
         map_main.setMapViewEventListener(this)
         map_main.setCalloutBalloonAdapter(CustomMarkerBalloonAdapter(this@MainActivity))
 
         rv_auto_complete.run {
-            addItemDecoration(VerticalMarginDecoration(this@MainActivity))
+            addItemDecoration(
+                VerticalMarginDecoration(
+                    this@MainActivity
+                )
+            )
             layoutManager =
                 LinearLayoutManager(context).apply { orientation = RecyclerView.VERTICAL }
             adapter = AutoCompleteAdapter(object : BaseRecyclerViewAdapter.OnItemClickListener {
@@ -300,10 +314,12 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         when (requestCode) {
             PERMISSION_LOCATION_REQUEST_CODE -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT)
+                        .show()
                     bindView()
                 } else {
-                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.permission_define), Toast.LENGTH_SHORT)
+                        .show()
                     showAppSetting()
                 }
             }

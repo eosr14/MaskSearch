@@ -1,4 +1,4 @@
-package com.eosr14.masksearch.common
+package com.eosr14.masksearch.common.extension
 
 import java.text.ParseException
 import java.text.SimpleDateFormat
