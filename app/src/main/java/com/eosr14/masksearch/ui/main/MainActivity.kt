@@ -19,7 +19,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.eosr14.masksearch.R
-import com.eosr14.masksearch.common.*
+import com.eosr14.masksearch.common.KAKAO_NATIVE_APP_KEY
+import com.eosr14.masksearch.common.PERMISSION_LOCATION_REQUEST_CODE
+import com.eosr14.masksearch.common.REQUEST_METER
 import com.eosr14.masksearch.common.base.BaseActivity
 import com.eosr14.masksearch.common.base.BaseRecyclerViewAdapter
 import com.eosr14.masksearch.common.extension.showKeyboardAndFocus
@@ -27,6 +29,10 @@ import com.eosr14.masksearch.common.view.ExitDialog
 import com.eosr14.masksearch.common.view.VerticalMarginDecoration
 import com.eosr14.masksearch.databinding.ActivityMainBinding
 import com.eosr14.masksearch.model.MaskStoreModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.jakewharton.rxbinding3.widget.textChanges
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -41,6 +47,7 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
     MapReverseGeoCoder.ReverseGeoCodingResultListener {
 
     private lateinit var mainViewModel: MainVIewModel
+    private var myLocation: Location? = null
 
     private val onSoftKeyBoardShowListener: (Boolean) -> Unit = { isShowKeyBoard ->
         et_auto_complete?.let { it.showKeyboardAndFocus(isShowKeyBoard) }
@@ -57,6 +64,8 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
             viewModel = mainViewModel
             lifecycleOwner = this@MainActivity
 
+            getLastLocation()
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 checkLocationPermission()
             } else {
@@ -67,6 +76,7 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
 
     override fun onResume() {
         super.onResume()
+        getLastLocation()
         uiEventObserve()
     }
 
@@ -143,8 +153,14 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
     @SuppressLint("MissingPermission")
     private fun initLocation() {
         (getSystemService(Context.LOCATION_SERVICE) as LocationManager).apply {
-            getLastKnownLocation(this)?.let {
+            myLocation?.let {
                 map_main.apply {
+                    android.util.Log.d(
+                        "eosr14",
+                        "location init = ${it.latitude} // ${it.longitude}"
+                    )
+                    //36.04999923706055 // 127.33000183105467 이상한
+
                     val currentMapPoint = MapPoint.mapPointWithGeoCoord(it.latitude, it.longitude)
                     val currentMarker = MapPOIItem().apply {
                         itemName = "현재 위치"
@@ -183,7 +199,7 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
 
     private fun setDefaultMarker() {
         (getSystemService(Context.LOCATION_SERVICE) as LocationManager).apply {
-            getLastKnownLocation(this)?.let {
+            myLocation?.let {
                 val currentMapPoint = MapPoint.mapPointWithGeoCoord(it.latitude, it.longitude)
                 val currentMarker = MapPOIItem().apply {
                     itemName = "현재 위치"
@@ -210,17 +226,40 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         }
     }
 
+//    @SuppressLint("MissingPermission")
+//    private fun getLastKnownLocation(locationManager: LocationManager): Location? {
+//        val providers: List<String> = locationManager.getProviders(true)
+//        var bestLocation: Location? = null
+//        for (provider in providers) {
+//            val l: Location = locationManager.getLastKnownLocation(provider) ?: continue
+//            android.util.Log.d("eosr14", "locationLastKnown = $l $provider")
+//            if ((bestLocation == null || l.accuracy < bestLocation.accuracy) && provider != "passive") {
+//                bestLocation = l
+//            }
+//        }
+//        return bestLocation
+//    }
+
     @SuppressLint("MissingPermission")
-    private fun getLastKnownLocation(locationManager: LocationManager): Location? {
-        val providers: List<String> = locationManager.getProviders(true)
-        var bestLocation: Location? = null
-        for (provider in providers) {
-            val l: Location = locationManager.getLastKnownLocation(provider) ?: continue
-            if (bestLocation == null || l.accuracy < bestLocation.accuracy) {
-                bestLocation = l
+    private fun getLastLocation() {
+        val mFusedLocationClient: FusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(this)
+        mFusedLocationClient.lastLocation
+            .addOnSuccessListener {
+                myLocation = it
+                android.util.Log.d(
+                    "eosr14",
+                    "location init test onSuccess = ${it.latitude} // ${it.longitude}"
+                )
             }
-        }
-        return bestLocation
+            .addOnFailureListener {
+                android.util.Log.d(
+                    "eosr14",
+                    "location init test onFailed = ${it.message}"
+                )
+                Toast.makeText(this@MainActivity, R.string.missing_my_location, Toast.LENGTH_SHORT)
+                    .show()
+            }
     }
 
     private fun startFindAddress() {
