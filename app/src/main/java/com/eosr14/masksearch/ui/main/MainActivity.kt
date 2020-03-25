@@ -155,12 +155,6 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         (getSystemService(Context.LOCATION_SERVICE) as LocationManager).apply {
             myLocation?.let {
                 map_main.apply {
-                    android.util.Log.d(
-                        "eosr14",
-                        "location init = ${it.latitude} // ${it.longitude}"
-                    )
-                    //36.04999923706055 // 127.33000183105467 이상한
-
                     val currentMapPoint = MapPoint.mapPointWithGeoCoord(it.latitude, it.longitude)
                     val currentMarker = MapPOIItem().apply {
                         itemName = "현재 위치"
@@ -226,20 +220,6 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         }
     }
 
-//    @SuppressLint("MissingPermission")
-//    private fun getLastKnownLocation(locationManager: LocationManager): Location? {
-//        val providers: List<String> = locationManager.getProviders(true)
-//        var bestLocation: Location? = null
-//        for (provider in providers) {
-//            val l: Location = locationManager.getLastKnownLocation(provider) ?: continue
-//            android.util.Log.d("eosr14", "locationLastKnown = $l $provider")
-//            if ((bestLocation == null || l.accuracy < bestLocation.accuracy) && provider != "passive") {
-//                bestLocation = l
-//            }
-//        }
-//        return bestLocation
-//    }
-
     @SuppressLint("MissingPermission")
     private fun getLastLocation() {
         val mFusedLocationClient: FusedLocationProviderClient =
@@ -247,16 +227,8 @@ class MainActivity : BaseActivity(), MainViewModelInterface,
         mFusedLocationClient.lastLocation
             .addOnSuccessListener {
                 myLocation = it
-                android.util.Log.d(
-                    "eosr14",
-                    "location init test onSuccess = ${it.latitude} // ${it.longitude}"
-                )
             }
             .addOnFailureListener {
-                android.util.Log.d(
-                    "eosr14",
-                    "location init test onFailed = ${it.message}"
-                )
                 Toast.makeText(this@MainActivity, R.string.missing_my_location, Toast.LENGTH_SHORT)
                     .show()
             }
